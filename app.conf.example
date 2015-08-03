@@ -1,0 +1,11 @@
+[hue]
+enabled = False
+bridge = Address or name of your Philips Hue bridge
+lightbulbs = comma,separated,list,of,lightbulbs,to,control
+
+[logger]
+enabled = True
+logsdir = ./logs
+# Python logging format recognized here, see https://docs.python.org/3/library/logging.html#logging.Formatter
+format = [%(asctime)-15s] %(message)s
+
