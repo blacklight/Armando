@@ -1,5 +1,5 @@
 #!/bin/bash
 
-cd share/Takk
+cd ../share/Takk
 ./takk.py
 
