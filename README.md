@@ -31,6 +31,7 @@ All the projects are under `share/`. Each project may require different dependen
 
 All the configuration of the modules under `lib/` goes to `app.conf`. Copy `app.conf.example` to `app.conf` and modify it according to your needs.
 Global `app.conf` configuration can be overridden by defining your own `app.conf` under `share/YourProject`.
+Remember that the section name of the plugin in `app.conf` must be the same one of the module under `lib/` without the `.py` extension.
 
 ## Contribute
 
