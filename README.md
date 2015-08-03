@@ -22,8 +22,8 @@ Each script is independent from the others and may require different dependencie
 
 * `git clone git@github.com:/BlackLight/Smartish.git`
 * `cd Smartish`
-* `git script init`
-* `git script update`
+* `git submodule init`
+* `git submodule update`
 
 All the scripts are under `share/`. Each script may require different dependencies or a different configuration. Please rely on the `README.md` file inside of each folder.
 
@@ -33,7 +33,7 @@ You can contribute with your own scripts (under `share/` and `bin/`, scripts rea
 
 * Do you wish to customize Takk to cast your favourite movie on the Chromecast when you say its name? Add a Chromecast action set named `chromecast.py` to `lib/` and modify Takk configuration to invoke some of its methods when a certain pattern in the vocal command is recognized.
 
-* Do you wish to create a new script which performs some of the supported actions when your bluetooth smartphone pairs with your computer? Clone this project. Clone your own script GitHub project into `share/` as a script (e.g. `git script add https://github.com/yourname/Yourscript`). Remember to use a `README.md` file to explain how to configure and use your script or script. Use the actions sets under `lib/` or add your own. Remember to place an executable for running your script under `bin/`.
+* Do you wish to create a new script which performs some of the supported actions when your bluetooth smartphone pairs with your computer? Clone this project. Clone your own script GitHub project into `share/` as a script (e.g. `git submodule add https://github.com/yourname/Yourscript`). Remember to use a `README.md` file to explain how to configure and use your script or script. Use the actions sets under `lib/` or add your own. Remember to place an executable for running your script under `bin/`.
 
 In both the cases, submit me a pull request and I'll be glad to include your code.
 
