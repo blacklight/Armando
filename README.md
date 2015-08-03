@@ -1,8 +1,8 @@
-# Smartish
+# Armando
 
 ## Connect everything to everything.
 
-Smartish is a platform to connect custom events to custom actions, binding them together with your own Python scripts.
+Armando is a platform to connect custom events to custom actions, binding them together with your own Python scripts.
 
 You can, for instance:
 
@@ -20,8 +20,8 @@ Each project is independent from the others and may require different dependenci
 
 ## Installation
 
-* `git clone git@github.com:/BlackLight/Smartish.git`
-* `cd Smartish`
+* `git clone git@github.com:/BlackLight/Armando.git`
+* `cd Armando`
 * `git submodule init`
 * `git submodule update`
 
@@ -29,9 +29,9 @@ All the projects are under `share/`. Each project may require different dependen
 
 ## Configuration
 
-All the configuration of the modules under `lib/` goes to `app.conf`. Copy `app.conf.example` to `app.conf` and modify it according to your needs.
-Global `app.conf` configuration can be overridden by defining your own `app.conf` under `share/YourProject`.
-Remember that the section name of the plugin in `app.conf` must be the same one of the module under `lib/` without the `.py` extension.
+All the configuration of the modules under `lib/` goes to `main.conf`. Copy `main.conf.example` to `main.conf` and modify it according to your needs.
+Global `main.conf` configuration can be overridden by defining your own `main.conf` under `share/YourProject`.
+Remember that the section name of the plugin in `main.conf` must be the same one of the module under `lib/` without the `.py` extension.
 
 ## Contribute
 
