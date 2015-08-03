@@ -1,0 +1,3 @@
+[submodule "share/Takk"]
+	path = share/Takk
+	url = git@github.com:/BlackLight/Takk.git
