@@ -33,7 +33,7 @@ class SpeechRecognition():
             'languages': languages,
         })
 
-    def recognizeSpeechFromFile(self, filename):
+    def recognizeSpeechFromFile(self, filename, rate=44100):
         Logger.getLogger().info({
             'msgType': 'Google Speech Recognition API request',
             'module': self.__class__.__name__,
@@ -50,7 +50,7 @@ class SpeechRecognition():
 
             data = open(filename, 'rb').read(),
             headers = {
-                'Content-type': 'audio/x-flac; rate=44100',
+                'Content-type': 'audio/x-flac; rate=%s' % (rate),
             },
         )
 
