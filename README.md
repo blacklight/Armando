@@ -37,9 +37,18 @@ Remember that the section name of the plugin in `main.conf` must be the same one
 
 You can contribute with your own projects (folders under `share/` and executables under `bin/`, i.e. scripts which react on events performing actions defined by plugins) or plugins (under `lib/`, modules which allow you to interact with some specific Python-controllable device, e.g. Hue lightbulbs, music servers, SSH sessions, Chromecast devices, etc.).
 
-* Do you wish to customize `Takk` to cast your favourite movie on the Chromecast when you say its name? Add a Chromecast plugin named `chromecast.py` to `lib/` and modify `Takk` configuration to invoke some of the public methods under its `Chromecast` class when a certain pattern in the vocal command is recognized.
+* Do you wish to customize `Takk` to cast your favourite movie on the Chromecast when you say its name?
 
-* Do you wish to create a new script which performs some of the supported actions when your bluetooth smartphone pairs with your computer? Clone this project. Clone your own script GitHub project into `share/` as a script (e.g. `git submodule add https://github.com/yourname/Yourscript`). Remember to use a `README.md` file to explain how to configure and use your script or script. Use the plugins under `lib/` or add your own. Remember to place an executable for running your script under `bin/`.
+	* Add a Chromecast plugin named `chromecast.py` to `lib/`
+	* Modify `Takk` configuration to invoke some of the public methods under its `Chromecast` class when a certain pattern in the vocal command is recognized.
+
+* Do you wish to create a new script which performs some of the supported actions when your bluetooth smartphone pairs with your computer?
+
+	* `git clone https://github.com/BlackLight/Armando.git`
+	* `cd ./Armando/share`
+	* `git submodule add https://github.com/yourname/YourProject.git`
+	* Remember to use a `README.md` file to explain how to configure and use your script.
+	* If needed, place an executable for running your script under `bin/`.
 
 In both the cases, submit me a pull request and I'll be glad to include your code.
 
