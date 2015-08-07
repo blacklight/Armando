@@ -61,3 +61,7 @@ main.conf
 # Temporary files
 tmp/
 
+# VIM swap files
+*.swp
+*.swo
+
