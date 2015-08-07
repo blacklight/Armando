@@ -58,3 +58,6 @@ target/
 # Configuration file
 main.conf
 
+# Temporary files
+tmp/
+
