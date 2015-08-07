@@ -7,6 +7,7 @@ class Hue():
     """
     Plugin to interact with Philips Hue devices
     @author: Fabio "BlackLight" Manganiello <blacklight86@gmail.com>
+    @depend: Philips Hue phue Python bridge [pip install phue]
     """
 
     def __init__(self, bridge, lightbulb=None):
