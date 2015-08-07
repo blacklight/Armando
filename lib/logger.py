@@ -3,18 +3,25 @@ import logging
 
 class Logger():
     """
+    Interface to log Armando platform messages
     @author: Fabio "BlackLight" Manganiello <blacklight86@gmail.com>
     """
 
     __logger = None
 
     @classmethod
-    def createStaticLogger(cls, logfile=None, loglevel='INFO'):
+    def create_static_logger(cls, logfile=None, loglevel='INFO'):
+        """
+        Method to initialize the class static logger
+        logfile -- Path to the log file
+        loglevel -- Log level string (default: INFO)
+        """
         cls.__logger = Logger(logfile=logfile, loglevel=loglevel)
         return cls.__logger
 
     @classmethod
-    def getLogger(cls):
+    def get_logger(cls):
+        " Get the class static logger "
         return cls.__logger
 
     def __init__(self, logfile=None, loglevel='INFO'):

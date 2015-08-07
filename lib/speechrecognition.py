@@ -19,32 +19,32 @@ class SpeechRecognition():
     @author: Fabio "BlackLight" Manganiello <blacklight86@gmail.com>
     """
 
-    def __init__(self, apiKey=None, languages=['en-us']):
-        if not apiKey:
+    def __init__(self, api_key=None, languages=['en-us']):
+        if not api_key:
             raise Exception('No Google speech recognition API key found in your configuration or GOOGLE_SPEECH_API_KEY environment variable')
 
-        self.apiKey = apiKey
+        self.api_key = api_key
         self.languages = languages
 
-        Logger.getLogger().info({
-            'msgType': 'Initializing speech recognition backend',
+        Logger.get_logger().info({
+            'msg_type': 'Initializing speech recognition backend',
             'module': self.__class__.__name__,
-            'apiKey': '******',
+            'api_key': '******',
             'languages': languages,
         })
 
-    def recognizeSpeechFromFile(self, filename):
-        Logger.getLogger().info({
-            'msgType': 'Google Speech Recognition API request',
+    def recognize_speech_from_file(self, filename):
+        Logger.get_logger().info({
+            'msg_type': 'Google Speech Recognition API request',
             'module': self.__class__.__name__,
-            'apiKey': '******',
+            'api_key': '******',
             'language': self.languages[0],
         })
 
         r = requests.post( \
             'http://www.google.com/speech-api/v2/recognize?' + urlencode({
                 'lang': self.languages[0],
-                'key': self.apiKey,
+                'key': self.api_key,
                 'output': 'json',
             }),
 
@@ -57,8 +57,8 @@ class SpeechRecognition():
         if not r.ok:
             raise Exception('Got an unexpected HTTP response %d from the server' % r.status_code)
 
-        Logger.getLogger().info({
-            'msgType': 'Google Speech Recognition API response',
+        Logger.get_logger().info({
+            'msg_type': 'Google Speech Recognition API response',
             'module': self.__class__.__name__,
             'response': r.text,
         })
