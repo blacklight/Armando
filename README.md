@@ -47,6 +47,16 @@ You can contribute with your own projects (folders under `share/` and executable
 	* `git clone https://github.com/BlackLight/Armando.git`
 	* `cd ./Armando/share`
 	* `git submodule add https://github.com/yourname/YourProject.git`
+	* Place a reference to Armando's `__init__.py` by symlinking it into your project this way:
+		* `cd YourProject`
+		* `mkdir __armando__`
+		* `ln -s ../../../lib/__init__.py __armando__/__init__.py`
+		* Before importing any Armando modules, include the following code in your script:
+```
+from __armando__ import Armando
+Armando.init()
+```
+
 	* Remember to use a `README.md` file to explain how to configure and use your script.
 	* If needed, place an executable for running your script under `bin/`.
 
