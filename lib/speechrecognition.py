@@ -16,10 +16,18 @@ class SpeechRecognitionError(Exception):
 
 class SpeechRecognition():
     """
+    Plugin to interact with speech recognition by using Google Speech Recognition API
+    @depend: requests [pip install requests]
     @author: Fabio "BlackLight" Manganiello <blacklight86@gmail.com>
     """
 
     def __init__(self, api_key=None, languages=['en-us']):
+        """
+        api_key -- Google Speech Recognition API key - instructions on how to get one: http://www.chromium.org/developers/how-tos/api-keys
+        languages -- Array of languages to use for speech detection. So far only the first language is supported, but TODO use of
+            secondary language(s) in case the confidence score reported by the API is below a certain threshold
+        """
+
         if not api_key:
             raise Exception('No Google speech recognition API key found in your configuration or GOOGLE_SPEECH_API_KEY environment variable')
 
@@ -34,6 +42,11 @@ class SpeechRecognition():
         })
 
     def recognize_speech_from_file(self, filename):
+        """
+        Recognizes the speech contained in a FLAC audio file
+        filename -- Path to the FLAC file containing any speech
+        """
+
         Logger.get_logger().info({
             'msg_type': 'Google Speech Recognition API request',
             'module': self.__class__.__name__,
