@@ -1,5 +1,8 @@
+from __init__ import Armando
+
 import json
 import logging
+import os
 
 class Logger():
     """
@@ -24,11 +27,11 @@ class Logger():
         " Get the class static logger "
         return cls.__logger
 
-    def __init__(self, logfile=None, loglevel='INFO'):
+    def __init__(self, logfile=None, loglevel='INFO', format=None):
         if logfile is not None:
             self.logfile = logfile
         else:
-            self.logfile = 'takk.log'
+            self.logfile = Armando.get_logs_dir() + os.sep + 'main.log'
 
         if loglevel and loglevel.lower() == 'debug':
             self.loglevel = logging.DEBUG
@@ -44,7 +47,7 @@ class Logger():
         logging.basicConfig(
             filename = self.logfile,
             level = self.loglevel,
-            format = '[%(asctime)-15s] %(message)s'
+            format = format if format else '[%(asctime)-15s] %(message)s'
         )
 
     def debug(self, msg):

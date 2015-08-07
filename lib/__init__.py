@@ -8,6 +8,7 @@ class Armando(object):
 
     @classmethod
     def get_base_dir(cls, curpath=None):
+        " Get the base directory of Armando project by searching for the .project.root file "
         if not curpath:
             curpath = os.path.realpath(os.path.abspath(os.path.split(inspect.getfile(inspect.currentframe()))[0]))
 
@@ -19,6 +20,26 @@ class Armando(object):
                 + '- no .project.root file found in the upper filesystem hierarchy')
 
         return cls.get_base_dir(os.path.realpath(curpath + os.sep + '..'))
+
+    @classmethod
+    def get_logs_dir(cls):
+        " Get logs directory "
+        return os.path.realpath(cls.get_base_dir() + os.sep + 'logs')
+
+    @classmethod
+    def get_tmp_dir(cls):
+        " Get tmp directory "
+        return os.path.realpath(cls.get_base_dir() + os.sep + 'tmp')
+
+    @classmethod
+    def get_lib_dir(cls):
+        " Get lib directory "
+        return os.path.realpath(cls.get_base_dir() + os.sep + 'lib')
+
+    @classmethod
+    def get_share_dir(cls):
+        " Get share directory "
+        return os.path.realpath(cls.get_base_dir() + os.sep + 'share')
 
     @classmethod
     def add_base_lib_dir_to_path(cls):
