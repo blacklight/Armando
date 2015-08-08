@@ -18,7 +18,7 @@ class AudioSource(object):
     """
 
     threshold = 5000  # audio levels not normalised.
-    chunk_size = 32768
+    chunk_size = 8192
     rate = 44100
     max_chunks = int(3 * rate / chunk_size) # 3 sec
     format = pyaudio.paInt16
