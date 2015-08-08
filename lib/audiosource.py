@@ -37,15 +37,15 @@ class AudioSource(object):
         else:
             raise Exception('No audio.audio_file item specified in your configuration')
 
-        self.threshold = int(threshold) if threshold is not None else __class__.threshold
-        self.chunk_size = int(chunk_size) if chunk_size is not None else __class__.chunk_size
-        self.rate = int(rate) if rate is not None else __class__.rate
+        self.threshold = int(threshold) if threshold is not None else self.__class__.threshold
+        self.chunk_size = int(chunk_size) if chunk_size is not None else self.__class__.chunk_size
+        self.rate = int(rate) if rate is not None else self.__class__.rate
         self.max_chunks = int(3 * self.rate / self.chunk_size)
-        self.format = __class__.format
-        self.frame_max_value = __class__.frame_max_value
-        self.normalize_minus_one_db = __class__.normalize_minus_one_db
-        self.channels = __class__.channels
-        self.trim_append = __class__.trim_append
+        self.format = self.__class__.format
+        self.frame_max_value = self.__class__.frame_max_value
+        self.normalize_minus_one_db = self.__class__.normalize_minus_one_db
+        self.channels = self.__class__.channels
+        self.trim_append = self.__class__.trim_append
 
         Logger.get_logger().info({
             'msg_type': 'Initializing audio source',
