@@ -90,25 +90,27 @@ class AudioSource(object):
         p = pyaudio.PyAudio()
         stream = p.open(format=self.format, channels=self.channels, rate=self.rate, input=True, output=True, frames_per_buffer=self.chunk_size)
 
-        audio_started = False
-        data_all = array('h')
+        try:
+            audio_started = False
+            data_all = array('h')
 
-        Logger.get_logger().info({
-            'msg_type': 'Audio recording started',
-            'module': self.__class__.__name__
-        })
+            Logger.get_logger().info({
+                'msg_type': 'Audio recording started',
+                'module': self.__class__.__name__
+            })
 
-        while int(len(data_all) / self.chunk_size) < self.max_chunks:
-            # little endian, signed short
-            data_chunk = array('h', stream.read(self.chunk_size))
-            if byteorder == 'big':
-                data_chunk.byteswap()
-            data_all.extend(data_chunk)
+            while int(len(data_all) / self.chunk_size) < self.max_chunks:
+                # little endian, signed short
+                data_chunk = array('h', stream.read(self.chunk_size))
+                if byteorder == 'big':
+                    data_chunk.byteswap()
+                data_all.extend(data_chunk)
 
-        sample_width = p.get_sample_size(self.format)
-        stream.stop_stream()
-        stream.close()
-        p.terminate()
+            sample_width = p.get_sample_size(self.format)
+        finally:
+            stream.stop_stream()
+            stream.close()
+            p.terminate()
 
         Logger.get_logger().info({
             'msg_type': 'Audio recording stopped',
