@@ -1,5 +1,4 @@
 from __init__ import Armando
-import os
 
 class Constants(object):
     """
@@ -22,7 +21,6 @@ class Constants(object):
         value -- The value which contains potential constant references to be expanded
         """
         for constant, expand_func in cls.__constants_func_map.items():
-            print(expand_func)
             value = value.replace(constant, expand_func())
         return value
 

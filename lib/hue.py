@@ -1,34 +1,37 @@
 import re
 
+from config import Config
 from logger import Logger
 from phue import Bridge
 
-class Hue():
+class Hue(object):
     """
     Plugin to interact with Philips Hue devices
     @author: Fabio "BlackLight" Manganiello <blacklight86@gmail.com>
     @depend: Philips Hue phue Python bridge [pip install phue]
     """
 
-    def __init__(self, bridge, lightbulb=None):
+    __config = Config.get_config()
+    __logger = Logger.get_logger(__name__)
+
+    def __init__(self, lightbulbs=None):
         """
         bridge -- Name or IP address of the Philips Hue bridge host
-        lightbulb -- Lightbulbs to act on - single lightbulb name or comma separated list.
+        lightbulbs -- Lightbulbs to act on - single lightbulb name or comma separated list.
             In case nothing is passed, the plugin will act on all the lightbulbs connected to the bridge
         """
-        self.bridge_address = bridge
-        self.lights_map = {}
+        self.bridge_address = Hue.__config.get('hue.bridge')
+        self.lightbulbs = Hue.__config.get('hue.lightbulbs')
         self.connected = False
 
-        if lightbulb:
-            m = re.split('\s*,\s*', lightbulb)
-            self.lightbulbs = m if m else [lightbulb]
+        if self.lightbulbs:
+            m = re.split('\s*,\s*', self.lightbulbs)
+            self.lightbulbs = m or [self.lightbulbs]
 
-        Logger.get_logger().info({
+        Hue.__logger.info({
             'msg_type': 'Hue bridge started',
             'bridge': self.bridge_address,
-            'module': self.__class__.__name__,
-            'lightbulbs': self.lightbulbs if lightbulb else None,
+            'lightbulbs': self.lightbulbs or None,
         })
 
     def connect(self):
@@ -37,27 +40,23 @@ class Hue():
         if self.connected:
             return
 
-        Logger.get_logger().info({
+        Hue.__logger.info({
             'msg_type': 'Connecting to the Hue bridge',
-            'module': self.__class__.__name__,
         })
 
         self.bridge = Bridge(self.bridge_address)
         self.bridge.connect()
         self.bridge.get_api()
 
-        Logger.get_logger().info({
-            'msg_type': 'Connected to the Hue bridge',
-            'module': self.__class__.__name__,
-        })
-
-        for light in self.bridge.lights:
-            self.lights_map[light.name] = light
-
-        if not hasattr(self, 'lightbulbs'):
+        if not self.lightbulbs:
             self.lightbulbs = []
             for light in self.bridge.lights:
                 self.lightbulbs.append(light.name)
+
+        Hue.__logger.info({
+            'msg_type': 'Connected to the Hue bridge',
+            'lightbulbs': self.lightbulbs,
+        })
 
         self.connected = True
 
@@ -71,9 +70,8 @@ class Hue():
         on -- If False, turn the lights off, otherwise turn them on
         """
 
-        Logger.get_logger().info({
+        Hue.__logger.info({
             'msg_type': 'Set lightbulbs on',
-            'module': self.__class__.__name__,
             'on': on,
         })
 
@@ -88,9 +86,8 @@ class Hue():
         bri -- Brightness value, in range [0-255]
         """
 
-        Logger.get_logger().info({
+        Hue.__logger.info({
             'msg_type': 'Set lightbulbs brightness',
-            'module': self.__class__.__name__,
             'brightness': bri,
         })
 
@@ -110,9 +107,8 @@ class Hue():
         sat -- Saturation value, in range [0-500]
         """
 
-        Logger.get_logger().info({
+        Hue.__logger.info({
             'msg_type': 'Set lightbulbs saturation',
-            'module': self.__class__.__name__,
             'saturation': sat,
         })
 
@@ -124,11 +120,12 @@ class Hue():
         hue -- Hue/tint value, in range [0-65535]
         """
 
-        Logger.get_logger().info({
+        Hue.__logger.info({
             'msg_type': 'Set lightbulbs hue',
-            'module': self.__class__.__name__,
             'saturation': hue,
         })
 
         self.bridge.set_light(self.lightbulbs, 'hue', hue)
+
+# vim:sw=4:ts=4:et:
 

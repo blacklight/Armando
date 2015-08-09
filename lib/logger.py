@@ -1,66 +1,114 @@
 from __init__ import Armando
+from config import Config
 
 import json
 import logging
 import os
+import threading
 
-class Logger():
+class Logger(object):
     """
     Interface to log Armando platform messages
     @author: Fabio "BlackLight" Manganiello <blacklight86@gmail.com>
     """
 
-    __logger = None
+    __config = Config.get_config()
+    __loggers = {}
+    __loggers_lock = threading.RLock()
+    __logs_ext = '.log'
+    __default_log_format = '[%(asctime)-15s] %(message)s'
 
     @classmethod
-    def create_static_logger(cls, logfile=None, loglevel='INFO'):
-        """
-        Method to initialize the class static logger
-        logfile -- Path to the log file
-        loglevel -- Log level string (default: INFO)
-        """
-        cls.__logger = Logger(logfile=logfile, loglevel=loglevel)
-        return cls.__logger
+    def __get_logfile_name(cls):
+        return Armando.get_logs_dir() \
+            + os.sep \
+            + (cls.__config.get('logging.filename') or 'main.log')
 
     @classmethod
-    def get_logger(cls):
-        " Get the class static logger "
-        return cls.__logger
-
-    def __init__(self, logfile=None, loglevel='INFO', format=None):
-        if logfile is not None:
-            self.logfile = logfile
+    def __get_loglevel(cls):
+        loglevel = cls.__config.get('logger.loglevel').lower()
+        if loglevel == 'debug':
+            return logging.DEBUG
+        elif loglevel == 'info':
+            return logging.INFO
+        elif loglevel == 'warning':
+            return logging.WARNING
+        elif loglevel == 'error':
+            return logging.ERROR
         else:
-            self.logfile = Armando.get_logs_dir() + os.sep + 'main.log'
+            raise AttributeError('Invalid log level option [%s] - valid values: [DEBUG, INFO, WARNING, ERROR]' \
+                % loglevel)
 
-        if loglevel and loglevel.lower() == 'debug':
-            self.loglevel = logging.DEBUG
-        elif loglevel and loglevel.lower() == 'info':
-            self.loglevel = logging.INFO
-        elif loglevel and loglevel.lower() == 'warning':
-            self.loglevel = logging.WARNING
-        elif loglevel and loglevel.lower() == 'error':
-            self.loglevel = logging.ERROR
-        else:
-            self.loglevel = logging.INFO
+    @classmethod
+    def __get_log_format(cls):
+        logformat = cls.__config.get('logger.format')
+        if not logformat:
+            logformat = cls.__default_log_format
+        return logformat
+
+    @classmethod
+    def get_logger(cls, module_name=None):
+        """
+        Thread-safe singleton to access or initialize the static default logger object
+        """
+        if module_name is None:
+            module_name = __name__
+
+        cls.__loggers_lock.acquire()
+        try:
+            classname = module_name
+            if not classname in cls.__loggers:
+                cls.__loggers[classname] = Logger(
+                    module_name=module_name,
+                    loglevel=cls.__get_loglevel()
+                )
+
+            return cls.__loggers[classname]
+        finally:
+            cls.__loggers_lock.release()
+
+    def __init__(self, module_name=None, loglevel=logging.INFO, format=None):
+        """
+        Logger constructor
+        module_name -- Module to be logged (default: this module. Module
+            information is part of the log records)
+        loglevel -- Log level (default: logging.INFO)
+        format -- Log format (default: __class__.__default_log_format)
+        """
+        self.module_name = module_name
+        self.loglevel = loglevel
+        self.logfile=self.__get_logfile_name()
 
         logging.basicConfig(
             filename = self.logfile,
             level = self.loglevel,
-            format = format if format else '[%(asctime)-15s] %(message)s'
+            format = format if format else Logger.__get_log_format()
         )
 
+    def log(self, msg, logfunc=logging.info):
+        """
+        Default log function
+        msg -- Message to be logged, as a key-value dictionary. It will be logged in JSON format
+        logfunc -- Function that will log msg (default: logging.info)
+        """
+        msg['module'] = self.module_name
+        logfunc(json.dumps(msg))
+
     def debug(self, msg):
-        logging.debug(json.dumps(msg))
+        " Debug logger function. msg must be a key-value dictionary, will be dumped as JSON "
+        self.log(msg=msg, logfunc=logging.debug)
 
     def info(self, msg):
-        logging.info(json.dumps(msg))
+        " Info logger function. msg must be a key-value dictionary, will be dumped as JSON "
+        self.log(msg=msg, logfunc=logging.info)
 
     def warning(self, msg):
-        logging.warning(json.dumps(msg))
+        " Warning logger function. msg must be a key-value dictionary, will be dumped as JSON "
+        self.log(msg=msg, logfunc=logging.warning)
 
     def error(self, msg):
-        logging.error(json.dumps(msg))
+        " Error logger function. msg must be a key-value dictionary, will be dumped as JSON "
+        self.log(msg=msg, logfunc=logging.error)
 
 # vim:sw=4:ts=4:et:
 

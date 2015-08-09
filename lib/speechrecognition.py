@@ -1,4 +1,5 @@
 from __future__ import print_function
+from config import Config
 from logger import Logger
 
 import json
@@ -21,35 +22,51 @@ class SpeechRecognition():
     @author: Fabio "BlackLight" Manganiello <blacklight86@gmail.com>
     """
 
-    def __init__(self, api_key=None, languages=['en-us']):
+    __config = Config.get_config()
+    __logger = Logger.get_logger(__name__)
+    __default_languages = ['en-us']
+
+    def __init__(self):
         """
-        api_key -- Google Speech Recognition API key - instructions on how to get one: http://www.chromium.org/developers/how-tos/api-keys
-        languages -- Array of languages to use for speech detection. So far only the first language is supported, but TODO use of
-            secondary language(s) in case the confidence score reported by the API is below a certain threshold
+        self.api_key -- Google Speech Recognition API key, from config[speech.api_key]
+            Instructions on how to get one: http://www.chromium.org/developers/how-tos/api-keys
+        self.languages -- From config[speech.languages], comma-separated list of languages
+        to use for speech detection. So far only the first language is supported, but @TODO
+        use of secondary language(s) in case the confidence score reported by the API is below a certain threshold
         """
 
-        if not api_key:
-            raise Exception('No Google speech recognition API key found in your configuration or GOOGLE_SPEECH_API_KEY environment variable')
+        self.api_key = SpeechRecognition.__config.get('speech.api_key')
+        self.languages = SpeechRecognition.__config.get('speech.languages')
 
-        self.api_key = api_key
-        self.languages = languages
+        if self.languages:
+            self.languages = self.languages.split('\s*,\s*')
+        else:
+            self.languages = SpeechRecognition.__default_languages
 
-        Logger.get_logger().info({
+        if not self.api_key:
+            raise AttributeError('No Google speech recognition API key in ' \
+                + 'your configuration on config[speech.api_key]. Instructions ' \
+                + 'on how to get one: http://www.chromium.org/developers/how-tos/api-keys')
+
+
+        SpeechRecognition.__logger.info({
             'msg_type': 'Initializing speech recognition backend',
-            'module': self.__class__.__name__,
             'api_key': '******',
-            'languages': languages,
+            'languages': self.languages,
         })
 
-    def recognize_speech_from_file(self, filename):
+    def recognize_speech_from_file(self):
         """
         Recognizes the speech contained in a FLAC audio file
-        filename -- Path to the FLAC file containing any speech
+        self.filename -- From config[audio.flac_file]
         """
 
-        Logger.get_logger().info({
+        filename = SpeechRecognition.__config.get('audio.flac_file')
+        if not filename:
+            raise AttributeError('No audio.flac_file configuration option specified')
+
+        SpeechRecognition.__logger.info({
             'msg_type': 'Google Speech Recognition API request',
-            'module': self.__class__.__name__,
             'api_key': '******',
             'language': self.languages[0],
         })
@@ -68,11 +85,10 @@ class SpeechRecognition():
         )
 
         if not r.ok:
-            raise Exception('Got an unexpected HTTP response %d from the server' % r.status_code)
+            raise RuntimeError('Got an unexpected HTTP response %d from the server' % r.status_code)
 
-        Logger.get_logger().info({
+        SpeechRecognition.__logger.info({
             'msg_type': 'Google Speech Recognition API response',
-            'module': self.__class__.__name__,
             'response': r.text,
         })
 

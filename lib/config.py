@@ -8,8 +8,7 @@ from constants import Constants
 
 import json
 import os
-import re
-import sys
+import threading
 
 class ConfigError(Exception):
     pass
@@ -20,22 +19,25 @@ class Config(object):
     @author: Fabio "BlackLight" Manganiello <blacklight86@gmail.com>
     """
 
+    __config = None
+    __config_lock = threading.RLock()
+
     ######
     # Private methods
     ######
 
     def __parse_rc_file(self, rcfile):
         parser = SafeConfigParser()
-
-        try:
-            parser.readfp(open(rcfile))
-        except Exception as e:
-            raise e
+        with open(rcfile) as fp:
+            parser.readfp(fp)
 
         for section in parser.sections():
+            # Ignore sections having enabled = False
             if parser.has_option(section, 'enabled') and parser.getboolean(section, 'enabled') is False:
                 continue
 
+            # Case insensitive mapping - [logger]\nlevel=INFO in config becomes
+            # self.config['logger.level'] = 'INFO'
             for key, value in parser.items(section):
                 key = ('%s.%s' % (section, key)).lower()
                 value = Constants.expand_value(value)
@@ -49,32 +51,54 @@ class Config(object):
         """
 
         self.config = {}
+        rcfile_found = False
 
+        # If no rcfile is provided, we read __BASEDIR__/main.conf,
+        # which can be overriden by your local share/YourProject/main.conf
         if rcfile is None:
             try:
                 self.__parse_rc_file(Armando.get_base_dir() + os.sep + 'main.conf')
+                rcfile_found = True
                 self.__parse_rc_file(os.getcwd() + os.sep + 'main.conf')
-            except FileNotFoundError as e:
-                pass
+            except EnvironmentError as e:
+                # Ok guys, it can't be true that Python 3 supports
+                # FileNotFoundError and Python 2 does not, and I have to use
+                # EnvironmentError to be compatible with both. You guys have
+                # COMPLETELY smashed the back compatibility and killed a great
+                # programming language. I hate you from the bottom of my heart.
+                if rcfile_found is False:
+                    raise e
         else:
             self.__parse_rc_file(rcfile)
 
         if len(self.config.items()) == 0:
-            raise RuntimeError('No configuration has been loaded - both %s/main.conf and ./main.conf file were not found or are invalid' % Armando.get_base_dir())
+            raise RuntimeError( \
+                'No configuration has been loaded - both %s/main.conf and ./main.conf files' \
+                'were not found or are invalid' % (Armando.get_base_dir()))
+
+    ######
+    # Public methods
+    ######
+
+    @classmethod
+    def get_config(cls):
+        """
+        Thread-safe singleton to access or initialize the static default configuration object
+        """
+        cls.__config_lock.acquire()
+        try:
+            if cls.__config is None:
+                cls.__config = Config()
+        finally:
+            cls.__config_lock.release()
+        return cls.__config
 
     def get(self, attr):
         """
         Configuration getter
         attr -- Attribute name - note that we are case insensitive when it comes to attribute names
         """
-
         attr = attr.lower()
-        if attr == 'speech.google_speech_api_key':
-            return self.config[attr] if attr in self.config else os.getenv('GOOGLE_SPEECH_API_KEY')
-
-        if attr not in self.config:
-            return None
-
         return self.config[attr] if attr in self.config else None
 
     def dump(self):

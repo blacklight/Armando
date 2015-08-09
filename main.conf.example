@@ -14,11 +14,23 @@ loglevel = DEBUG
 enabled = False
 # Put your Google Speech Recognition API secret key here or in an environment variable named GOOGLE_SPEECH_API_KEY
 # Instructions on how to get your key: http://www.chromium.org/developers/how-tos/api-keys
-# google_speech_api_key = Your Google Speech API secret key
-# language = en-us,it-it
+api_key = Your Google Speech API secret key
+languages = en-us,it-it
 
 [audio]
-audio_file = __TMPDIR__/audio.flac
-# threshold = 4000
-# rate = 44100
+record_seconds = 3
+wav_file = __TMPDIR__/audio.wav
+flac_file = __TMPDIR__/audio.flac
+
+[lastfm]
+# Your Last.FM API key (how do I get one? http://www.last.fm/api)
+api_key = YOUR_API_KEY
+# Your Last.FM API secret key (how do I get one? http://www.last.fm/api)
+api_secret = YOUR_API_SECRET_KEY
+# Your own session key (how do I get one?  http://www.last.fm/api/show/auth.getSession)
+session_key = YOUR_SESSION_KEY
+
+[mpd]
+host = localhost
+port = 6600
 

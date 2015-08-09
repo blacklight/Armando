@@ -1,168 +1,84 @@
-from array import array
-from struct import pack
-from sys import byteorder
-from logger import Logger
-
-import copy
 import os
-import re
-import pyaudio
-import wave
+
+from __init__ import Armando
+from config import Config
+from logger import Logger
 
 class AudioSource(object):
     """
     AudioSource class for Armando platform
-    @depend: pyaudio [pip install pyaudio]
-    @depend: flac executable to convert the recorded audio to FLAC [apt-get install flac, pacman -S flac]
+    @depend: arecord (ALSA record), in order to record the audio. Yes, I used Pyaudio before,
+        but the other apps using Pyaudio were then systematically breaking their audio stack
+        after I used this code. You can anyway customize your audio recording app through
+        audio.record_cmd config setting, as long as the app returns a WAV file (for FLAC conversion)
+    @depend: flac executable in your PATH, to convert the recorded audio to FLAC [apt-get install flac, pacman -S flac]
     @author: Fabio "BlackLight" Manganiello <blacklight86@gmail.com>
     """
 
-    threshold = 5000  # audio levels not normalised.
-    chunk_size = 8192
-    rate = 44100
-    max_chunks = int(3 * rate / chunk_size) # 3 sec
-    format = pyaudio.paInt16
-    frame_max_value = 2 ** 15 - 1
-    normalize_minus_one_db = 10 ** (-1.0 / 20)
-    channels = 1
-    trim_append = rate / 4
+    __config = Config.get_config()
+    __logger = Logger.get_logger(__name__)
+    __default_wav_file = '%s/audio.wav' % (Armando.get_tmp_dir())
+    __default_flac_file = '%s/audio.flac' % (Armando.get_tmp_dir())
+    __default_record_seconds = 3
+    __default_record_cmd = 'arecord -f cd -t wav -d %d -r 44100 > %s' \
+        % (__default_record_seconds, __default_wav_file)
+    __default_flac_cmd = 'flac -f %s -o %s' % (__default_wav_file, __default_flac_file)
 
-    def __init__(self,
-             audio_file=None,
-             threshold=None,
-             chunk_size=None,
-             rate=None):
-        if audio_file is not None:
-            self.audio_file = audio_file
-        else:
-            raise Exception('No audio.audio_file item specified in your configuration')
+    def __init__(self):
+        """
+        self.wav_file -- From config [audio.wav_file] or __TMPDIR__/audio.wav
+        self.flac_file -- From config[audio.flac_file] or __TMPDIR__/audio.flac
+        self.record_seconds -- From config[audio.record_seconds] or 3
+        self.record_cmd -- From config[audio.record_cmd] or `arecord -f cd -t wav -d self.record_seconds -r 44100 > self.wav_file`
+        self.flac_cmd -- From config[audio.flac_cmd] or `flac -f self.wav_file -o self.flac_file`
+        """
+        self.wav_file = AudioSource.__config.get('audio.wav_file') or AudioSource.__default_wav_file
+        self.flac_file = AudioSource.__config.get('audio.flac_file') or AudioSource.__default_flac_file
+        self.record_seconds = AudioSource.__config.get('audio.record_seconds') or AudioSource.__default_record_seconds
+        self.record_cmd = AudioSource.__config.get('audio.record_cmd') or AudioSource.__default_record_cmd
+        self.flac_cmd = AudioSource.__config.get('audio.flac_cmd') or AudioSource.__default_flac_cmd
 
-        self.threshold = int(threshold) if threshold is not None else self.__class__.threshold
-        self.chunk_size = int(chunk_size) if chunk_size is not None else self.__class__.chunk_size
-        self.rate = int(rate) if rate is not None else self.__class__.rate
-        self.max_chunks = int(3 * self.rate / self.chunk_size)
-        self.format = self.__class__.format
-        self.frame_max_value = self.__class__.frame_max_value
-        self.normalize_minus_one_db = self.__class__.normalize_minus_one_db
-        self.channels = self.__class__.channels
-        self.trim_append = self.__class__.trim_append
-
-        Logger.get_logger().info({
+        AudioSource.__logger.info({
             'msg_type': 'Initializing audio source',
-            'module': self.__class__.__name__,
-            'threshold': self.threshold,
-            'chunk_size': self.chunk_size,
-            'rate': self.rate,
-            'channels': self.channels,
-            'frame_max_value': self.frame_max_value,
+            'wav_file': self.wav_file,
+            'flac_file': self.flac_file,
+            'record_seconds': self.record_seconds,
+            'record_cmd': self.record_cmd,
+            'flac_cmd': self.flac_cmd,
         })
 
-    def __normalize(self, data_all):
-        """Amplify the volume out to max -1dB"""
-        # MAXIMUM = 16384
-        normalize_factor = (float(self.normalize_minus_one_db * self.frame_max_value)
-                            / max(abs(i) for i in data_all))
-
-        r = array('h')
-        for i in data_all:
-            r.append(int(i * normalize_factor))
-        return r
-
-    def __trim(self, data_all):
-        _from = 0
-        _to = len(data_all) - 1
-        for i, b in enumerate(data_all):
-            if abs(b) > self.threshold:
-                _from = int(max(0, i - self.trim_append))
-                break
-
-        for i, b in enumerate(reversed(data_all)):
-            if abs(b) > self.threshold:
-                _to = int(min(len(data_all) - 1, len(data_all) - 1 - i + self.trim_append))
-                break
-
-        return copy.deepcopy(data_all[_from:(_to + 1)])
-
-    def record(self):
-        """Record a word or words from the microphone and 
-        return the data as an array of signed shorts."""
-
-        p = pyaudio.PyAudio()
-        stream = p.open(format=self.format, channels=self.channels, rate=self.rate, input=True, output=True, frames_per_buffer=self.chunk_size)
-
-        try:
-            audio_started = False
-            data_all = array('h')
-
-            Logger.get_logger().info({
-                'msg_type': 'Audio recording started',
-                'module': self.__class__.__name__
-            })
-
-            while int(len(data_all) / self.chunk_size) < self.max_chunks:
-                # little endian, signed short
-                data_chunk = array('h', stream.read(self.chunk_size))
-                if byteorder == 'big':
-                    data_chunk.byteswap()
-                data_all.extend(data_chunk)
-
-            sample_width = p.get_sample_size(self.format)
-        finally:
-            stream.stop_stream()
-            stream.close()
-            p.terminate()
-
-        Logger.get_logger().info({
-            'msg_type': 'Audio recording stopped',
-            'module': self.__class__.__name__
+    def record_to_wav(self):
+        """ Record from the audio source and output the recorded WAV audio to self.wav_file """
+        AudioSource.__logger.info({
+            'msg_type': 'Recording started',
+            'wav_file': self.wav_file,
         })
 
-        data_all = self.__trim(data_all)
-        data_all = self.__normalize(data_all)
-        return sample_width, data_all
+        os.system(self.record_cmd)
 
-    @staticmethod
-    def __split_filename(filename):
-        basename = filename
-        extension = 'wav'
-        m = re.match('(.*)\.(.*)', filename)
-        if m:
-            basename = m.group(1)
-            extension = m.group(2).lower()
-
-        return basename, extension
-
-    def record_to_file(self):
-        "Records from the microphone and outputs the resulting data to the file"
-        sample_width, data = self.record()
-        data = pack('<' + ('h' * len(data)), *data)
-
-        basename, extension = self.__split_filename(self.audio_file)
-        wave_file_name = '%s.wav' % basename
-        wave_file = wave.open(wave_file_name, 'wb')
-        wave_file.setnchannels(self.channels)
-        wave_file.setsampwidth(sample_width)
-        wave_file.setframerate(self.rate)
-        wave_file.writeframes(data)
-        wave_file.close()
-
-        Logger.get_logger().debug({
-            'msg_type': 'Saved recorded audio to wave file',
-            'module': self.__class__.__name__,
-            'filename': wave_file_name,
+        AudioSource.__logger.info({
+            'msg_type': 'Recording stopped',
+            'wav_file': self.wav_file,
         })
 
-        if extension.lower() == 'flac':
-            flac_file_name = '%s.flac' % basename
-            print('*** WAV [%s] FLAC [%s]' % (wave_file_name, flac_file_name))
-            os.system('flac -f %s -o %s' % (wave_file_name, flac_file_name))
-            os.remove(wave_file_name)
+    def record_to_flac(self):
+        """ Record from the audio source and output the recorded audio to self.flac_file """
+        self.record_to_wav()
 
-            Logger.get_logger().debug({
-                'msg_type': 'Saved recorded audio to flac file',
-                'module': self.__class__.__name__,
-                'filename': wave_file_name,
-            })
+        AudioSource.__logger.debug({
+            'msg_type': 'Converting WAV to FLAC file',
+            'wav_file': self.wav_file,
+            'flac_file': self.flac_file,
+        })
+
+        os.system(self.flac_cmd)
+        os.remove(self.wav_file)
+
+        AudioSource.__logger.debug({
+            'msg_type': 'Converted WAV to FLAC file',
+            'wav_file': self.wav_file,
+            'flac_file': self.flac_file,
+        })
 
 # vim:sw=4:ts=4:et:
 
