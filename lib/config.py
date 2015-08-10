@@ -1,7 +1,7 @@
 try:
-    from configparser import SafeConfigParser
+    from configparser import ConfigParser
 except ImportError as e:
-    from ConfigParser import SafeConfigParser
+    from ConfigParser import SafeConfigParser as ConfigParser
 
 from __init__ import Armando
 from constants import Constants
@@ -27,9 +27,9 @@ class Config(object):
     ######
 
     def __parse_rc_file(self, rcfile):
-        parser = SafeConfigParser()
+        parser = ConfigParser()
         with open(rcfile) as fp:
-            parser.readfp(fp)
+            parser.read_file(fp)
 
         for section in parser.sections():
             # Ignore sections having enabled = False
