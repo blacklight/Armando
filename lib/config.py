@@ -29,7 +29,16 @@ class Config(object):
     def __parse_rc_file(self, rcfile):
         parser = ConfigParser()
         with open(rcfile) as fp:
-            parser.read_file(fp)
+            try:
+                parser.read_file(fp)
+            except AttributeError as e:
+                # Ok Python, I hate you from the bottom of my heart.
+                # readfp() is the only method implemented by ConfigParser
+                # on Python 2, but it's deprecated by ConfigParser
+                # on Python 3, which uses read_file() instead. Why
+                # on Earth must I write some shit like this in a modern
+                # programming language?
+                parser.readfp(fp)
 
         for section in parser.sections():
             # Ignore sections having enabled = False
