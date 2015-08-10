@@ -2,6 +2,8 @@
 
 ## Connect everything to everything.
 
+[![Build Status](https://travis-ci.org/BlackLight/Armando.svg?branch=master)](https://travis-ci.org/BlackLight/Armando)
+
 Armando is a platform to connect custom events to custom actions, binding them together with your own Python scripts.
 
 You can, for instance:
