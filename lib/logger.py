@@ -12,21 +12,17 @@ class Logger(object):
     @author: Fabio "BlackLight" Manganiello <blacklight86@gmail.com>
     """
 
-    __config = Config.get_config()
     __loggers = {}
     __loggers_lock = threading.RLock()
-    __logs_ext = '.log'
     __default_log_format = '[%(asctime)-15s] %(message)s'
 
-    @classmethod
-    def __get_logfile_name(cls):
+    def __get_logfile_name(self):
         return Armando.get_logs_dir() \
             + os.sep \
-            + (cls.__config.get('logging.filename') or 'main.log')
+            + (self.__config.get('logging.filename') or 'main.log')
 
-    @classmethod
-    def __get_loglevel(cls):
-        loglevel = cls.__config.get('logger.loglevel').lower()
+    def __get_loglevel(self):
+        loglevel = self.__config.get('logger.loglevel').lower()
         if loglevel == 'debug':
             return logging.DEBUG
         elif loglevel == 'info':
@@ -39,11 +35,10 @@ class Logger(object):
             raise AttributeError('Invalid log level option [%s] - valid values: [DEBUG, INFO, WARNING, ERROR]' \
                 % loglevel)
 
-    @classmethod
-    def __get_log_format(cls):
-        logformat = cls.__config.get('logger.format')
+    def __get_log_format(self):
+        logformat = self.__config.get('logger.format')
         if not logformat:
-            logformat = cls.__default_log_format
+            logformat = self.__default_log_format
         return logformat
 
     @classmethod
@@ -58,31 +53,29 @@ class Logger(object):
         try:
             classname = module_name
             if not classname in cls.__loggers:
-                cls.__loggers[classname] = Logger(
-                    module_name=module_name,
-                    loglevel=cls.__get_loglevel()
-                )
+                cls.__loggers[classname] = Logger(module_name=module_name)
 
             return cls.__loggers[classname]
         finally:
             cls.__loggers_lock.release()
 
-    def __init__(self, module_name=None, loglevel=logging.INFO, format=None):
+    def __init__(self, module_name=None):
         """
         Logger constructor
         module_name -- Module to be logged (default: this module. Module
             information is part of the log records)
-        loglevel -- Log level (default: logging.INFO)
-        format -- Log format (default: __class__.__default_log_format)
         """
+        self.__config = Config.get_config()
+
         self.module_name = module_name
-        self.loglevel = loglevel
-        self.logfile=self.__get_logfile_name()
+        self.loglevel = self.__get_loglevel()
+        self.logformat = self.__get_log_format()
+        self.logfile = self.__get_logfile_name()
 
         logging.basicConfig(
             filename = self.logfile,
             level = self.loglevel,
-            format = format if format else Logger.__get_log_format()
+            format = self.logformat
         )
 
     def log(self, msg, logfunc=logging.info):

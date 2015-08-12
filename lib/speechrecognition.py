@@ -22,8 +22,6 @@ class SpeechRecognition():
     @author: Fabio "BlackLight" Manganiello <blacklight86@gmail.com>
     """
 
-    __config = Config.get_config()
-    __logger = Logger.get_logger(__name__)
     __default_languages = ['en-us']
 
     def __init__(self):
@@ -35,13 +33,15 @@ class SpeechRecognition():
         use of secondary language(s) in case the confidence score reported by the API is below a certain threshold
         """
 
-        self.api_key = SpeechRecognition.__config.get('speech.api_key')
-        self.languages = SpeechRecognition.__config.get('speech.languages')
+        self.__config = Config.get_config()
+        self.__logger = Logger.get_logger(__name__)
+        self.api_key = self.__config.get('speech.api_key')
+        self.languages = self.__config.get('speech.languages')
 
         if self.languages:
             self.languages = self.languages.split('\s*,\s*')
         else:
-            self.languages = SpeechRecognition.__default_languages
+            self.languages = self.__default_languages
 
         if not self.api_key:
             raise AttributeError('No Google speech recognition API key in ' \
@@ -49,7 +49,7 @@ class SpeechRecognition():
                 + 'on how to get one: http://www.chromium.org/developers/how-tos/api-keys')
 
 
-        SpeechRecognition.__logger.info({
+        self.__logger.info({
             'msg_type': 'Initializing speech recognition backend',
             'api_key': '******',
             'languages': self.languages,
@@ -61,11 +61,11 @@ class SpeechRecognition():
         self.filename -- From config[audio.flac_file]
         """
 
-        filename = SpeechRecognition.__config.get('audio.flac_file')
+        filename = self.__config.get('audio.flac_file')
         if not filename:
             raise AttributeError('No audio.flac_file configuration option specified')
 
-        SpeechRecognition.__logger.info({
+        self.__logger.info({
             'msg_type': 'Google Speech Recognition API request',
             'api_key': '******',
             'language': self.languages[0],
@@ -87,7 +87,7 @@ class SpeechRecognition():
         if not r.ok:
             raise RuntimeError('Got an unexpected HTTP response %d from the server' % r.status_code)
 
-        SpeechRecognition.__logger.info({
+        self.__logger.info({
             'msg_type': 'Google Speech Recognition API response',
             'response': r.text,
         })

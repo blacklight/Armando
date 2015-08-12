@@ -90,14 +90,14 @@ class Config(object):
     ######
 
     @classmethod
-    def get_config(cls):
+    def get_config(cls, rcfile=None):
         """
         Thread-safe singleton to access or initialize the static default configuration object
         """
         cls.__config_lock.acquire()
         try:
             if cls.__config is None:
-                cls.__config = Config()
+                cls.__config = Config(rcfile)
         finally:
             cls.__config_lock.release()
         return cls.__config

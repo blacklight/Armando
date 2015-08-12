@@ -11,24 +11,24 @@ class Hue(object):
     @depend: Philips Hue phue Python bridge [pip install phue]
     """
 
-    __config = Config.get_config()
-    __logger = Logger.get_logger(__name__)
-
     def __init__(self, lightbulbs=None):
         """
         bridge -- Name or IP address of the Philips Hue bridge host
         lightbulbs -- Lightbulbs to act on - single lightbulb name or comma separated list.
             In case nothing is passed, the plugin will act on all the lightbulbs connected to the bridge
         """
-        self.bridge_address = Hue.__config.get('hue.bridge')
-        self.lightbulbs = Hue.__config.get('hue.lightbulbs')
+        self.__config = Config.get_config()
+        self.__logger = Logger.get_logger(__name__)
+
+        self.bridge_address = self.__config.get('hue.bridge')
+        self.lightbulbs = self.__config.get('hue.lightbulbs')
         self.connected = False
 
         if self.lightbulbs:
             m = re.split('\s*,\s*', self.lightbulbs)
             self.lightbulbs = m or [self.lightbulbs]
 
-        Hue.__logger.info({
+        self.__logger.info({
             'msg_type': 'Hue bridge started',
             'bridge': self.bridge_address,
             'lightbulbs': self.lightbulbs or None,
@@ -40,7 +40,7 @@ class Hue(object):
         if self.connected:
             return
 
-        Hue.__logger.info({
+        self.__logger.info({
             'msg_type': 'Connecting to the Hue bridge',
         })
 
@@ -53,7 +53,7 @@ class Hue(object):
             for light in self.bridge.lights:
                 self.lightbulbs.append(light.name)
 
-        Hue.__logger.info({
+        self.__logger.info({
             'msg_type': 'Connected to the Hue bridge',
             'lightbulbs': self.lightbulbs,
         })
@@ -70,7 +70,7 @@ class Hue(object):
         on -- If False, turn the lights off, otherwise turn them on
         """
 
-        Hue.__logger.info({
+        self.__logger.info({
             'msg_type': 'Set lightbulbs on',
             'on': on,
         })
@@ -86,7 +86,7 @@ class Hue(object):
         bri -- Brightness value, in range [0-255]
         """
 
-        Hue.__logger.info({
+        self.__logger.info({
             'msg_type': 'Set lightbulbs brightness',
             'brightness': bri,
         })
@@ -107,7 +107,7 @@ class Hue(object):
         sat -- Saturation value, in range [0-500]
         """
 
-        Hue.__logger.info({
+        self.__logger.info({
             'msg_type': 'Set lightbulbs saturation',
             'saturation': sat,
         })
@@ -120,7 +120,7 @@ class Hue(object):
         hue -- Hue/tint value, in range [0-65535]
         """
 
-        Hue.__logger.info({
+        self.__logger.info({
             'msg_type': 'Set lightbulbs hue',
             'saturation': hue,
         })

@@ -42,6 +42,11 @@ class Armando(object):
         return os.path.realpath(cls.get_base_dir() + os.sep + 'share')
 
     @classmethod
+    def get_tests_dir(cls):
+        " Get tests directory "
+        return os.path.realpath(cls.get_base_dir() + os.sep + 't')
+
+    @classmethod
     def add_base_lib_dir_to_path(cls):
         """
         Add Armando platform base libdir to sys.path

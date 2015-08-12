@@ -9,8 +9,11 @@ from config import Config
 from logger import Logger
 
 class LastFM(object):
-    __config = Config.get_config()
-    __logger = Logger.get_logger(__name__)
+    """
+    Plugin for managing Last.FM interaction
+    @author: Fabio "BlackLight" Manganiello <blacklight86@gmail.com>
+    """
+
     __default_max_attempts = 5
 
     def __init__(self):
@@ -20,10 +23,13 @@ class LastFM(object):
         self.session_key -- From config[lastfm.session_key]
         self.max_attempts -- From config[lastfm.max_attempts] or 5
         """
-        self.api_key = LastFM.__config.get('lastfm.api_key')
-        self.api_secret = LastFM.__config.get('lastfm.api_secret')
-        self.session_key = LastFM.__config.get('lastfm.secret_key')
-        self.max_attempts = LastFM.__config.get('lastfm.secret_key') or __default_max_attempts
+        self.__config = Config.get_config()
+        self.__logger = Logger.get_logger(__name__)
+
+        self.api_key = self.__config.get('lastfm.api_key')
+        self.api_secret = self.__config.get('lastfm.api_secret')
+        self.session_key = self.__config.get('lastfm.secret_key')
+        self.max_attempts = self.__config.get('lastfm.max_attempts') or self.__default_max_attempts
 
         (self.api_key and self.api_secret and self.sessionKey) \
             or raise AttributeError('[lastfm.api_key], [lastfm.api_secret] and' \
@@ -57,7 +63,7 @@ class LastFM(object):
 
                 if len(errors) > 0:
                     code = int(errors[0].getAttribute('code'))
-                    LastFM.__logger.error({
+                    self.__logger.error({
                         'msg_type'  : 'Error while invoking Last.FM API',
                         'method'   : method,
                         'args'     : json.dumps(args),
@@ -71,7 +77,7 @@ class LastFM(object):
                     else:
                         stop_trying = True
                 else:
-                    LastFM.__logger..info({
+                    self.__logger..info({
                         'msg_type'  : 'API call succeeded',
                         'method'   : method,
                         'args'     : json.dumps(args),
@@ -82,7 +88,7 @@ class LastFM(object):
                     break
             except Exception as e:
                 tb = traceback.format_exc()
-                LastFM.__logger..error({
+                self.__logger..error({
                     'msg_type'   : 'Error while parsing server response',
                     'method'    : method,
                     'args'      : args,
@@ -98,7 +104,7 @@ class LastFM(object):
                     stop_trying = True
             finally:
                 if stop_trying and attempts >= self.max_attempts:
-                    LastFM.__logger..info({
+                    self.__logger..info({
                         'msg_type'  : 'Giving up API call',
                         'attempts' : attempts,
                         'method'   : method,

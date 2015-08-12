@@ -11,22 +11,22 @@ class MPD(object):
     @author: Fabio "BlackLight" Manganiello <blacklight86@gmail.com>
     """
 
-    __config = Config.get_config()
-    __logger = Logger.get_logger(__name__)
-
     def __init__(self):
         """
         Class constructor.
         Reads mpd.host and mpd.port parameters from config
         """
-        self.host = MPD.__config.get('mpd.host')
-        self.port = int(MPD.__config.get('mpd.port'))
+        self.__config = Config.get_config()
+        self.__logger = Logger.get_logger(__name__)
+
+        self.host = self.__config.get('mpd.host')
+        self.port = int(self.__config.get('mpd.port'))
 
     def server_cmd(self, cmd):
         """
         Send a command to the server and return the response as an array of splitted lines
         """
-        MPD.__logger.info({
+        self.__logger.info({
             'msg_type': 'Sending command to MPD server',
             'cmd': cmd,
         })
@@ -51,7 +51,7 @@ class MPD(object):
         finally:
             sock.close()
 
-        MPD.__logger.info({
+        self.__logger.info({
             'msg_type': 'Received response from MPD server',
             'cmd': cmd,
             'response': response,
@@ -97,11 +97,14 @@ class MPD(object):
             if m:
                 track_info['elapsed'] = float(m.group(1)) if len(m.group(1)) > 0 else None
 
-        if track_info['artist'] is None and track_info['title'] is not None:
+        if ('artist' not in track_info or track_info['artist'] is None) \
+                and ('title' in track_info and track_info['title'] is not None):
             m = re.match('^(.+?) - (.+?)$', track_info['title'])
             if m:
                 track_info['artist'] = m.group(1) if len(m.group(1)) > 0 else None
                 track_info['title'] = m.group(2) if len(m.group(2)) > 0 else track_info['title']
 
+        if 'file' not in track_info:
+            track_info['file'] = None
         return Track(track_info)
 

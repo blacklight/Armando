@@ -15,8 +15,6 @@ class AudioSource(object):
     @author: Fabio "BlackLight" Manganiello <blacklight86@gmail.com>
     """
 
-    __config = Config.get_config()
-    __logger = Logger.get_logger(__name__)
     __default_wav_file = '%s/audio.wav' % (Armando.get_tmp_dir())
     __default_flac_file = '%s/audio.flac' % (Armando.get_tmp_dir())
     __default_record_seconds = 3
@@ -32,13 +30,17 @@ class AudioSource(object):
         self.record_cmd -- From config[audio.record_cmd] or `arecord -f cd -t wav -d self.record_seconds -r 44100 > self.wav_file`
         self.flac_cmd -- From config[audio.flac_cmd] or `flac -f self.wav_file -o self.flac_file`
         """
-        self.wav_file = AudioSource.__config.get('audio.wav_file') or AudioSource.__default_wav_file
-        self.flac_file = AudioSource.__config.get('audio.flac_file') or AudioSource.__default_flac_file
-        self.record_seconds = AudioSource.__config.get('audio.record_seconds') or AudioSource.__default_record_seconds
-        self.record_cmd = AudioSource.__config.get('audio.record_cmd') or AudioSource.__default_record_cmd
-        self.flac_cmd = AudioSource.__config.get('audio.flac_cmd') or AudioSource.__default_flac_cmd
 
-        AudioSource.__logger.info({
+        self.__config = Config.get_config()
+        self.__logger = Logger.get_logger(__name__)
+
+        self.wav_file = self.__config.get('audio.wav_file') or self.__default_wav_file
+        self.flac_file = self.__config.get('audio.flac_file') or self.__default_flac_file
+        self.record_seconds = self.__config.get('audio.record_seconds') or self.__default_record_seconds
+        self.record_cmd = self.__config.get('audio.record_cmd') or self.__default_record_cmd
+        self.flac_cmd = self.__config.get('audio.flac_cmd') or self.__default_flac_cmd
+
+        self.__logger.info({
             'msg_type': 'Initializing audio source',
             'wav_file': self.wav_file,
             'flac_file': self.flac_file,
@@ -49,14 +51,14 @@ class AudioSource(object):
 
     def record_to_wav(self):
         """ Record from the audio source and output the recorded WAV audio to self.wav_file """
-        AudioSource.__logger.info({
+        self.__logger.info({
             'msg_type': 'Recording started',
             'wav_file': self.wav_file,
         })
 
         os.system(self.record_cmd)
 
-        AudioSource.__logger.info({
+        self.__logger.info({
             'msg_type': 'Recording stopped',
             'wav_file': self.wav_file,
         })
@@ -65,7 +67,7 @@ class AudioSource(object):
         """ Record from the audio source and output the recorded audio to self.flac_file """
         self.record_to_wav()
 
-        AudioSource.__logger.debug({
+        self.__logger.debug({
             'msg_type': 'Converting WAV to FLAC file',
             'wav_file': self.wav_file,
             'flac_file': self.flac_file,
@@ -74,7 +76,7 @@ class AudioSource(object):
         os.system(self.flac_cmd)
         os.remove(self.wav_file)
 
-        AudioSource.__logger.debug({
+        self.__logger.debug({
             'msg_type': 'Converted WAV to FLAC file',
             'wav_file': self.wav_file,
             'flac_file': self.flac_file,
