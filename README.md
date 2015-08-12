@@ -64,3 +64,8 @@ Armando.init()
 
 In both the cases, submit me a pull request and I'll be glad to include your code.
 
+## Compatibility
+
+Armando is compatible (and our tests are design to pass) with Python 2 (>= 2.6) and Python 3 (>= 3.0).
+I'm struggling sometimes to keep the code compatible with two versions which are not compatible with each other, but I'm planning to keep up with this effort as long as I can.
+
