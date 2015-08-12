@@ -129,3 +129,5 @@ class MpdServerMock(threading.Thread):
             except:
                 pass
 
+        self.__ssock.close()
+
