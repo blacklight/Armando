@@ -124,11 +124,12 @@ class MpdServerMock(threading.Thread):
             server.start()
 
     def stop(self):
-        for s in self.__sock_pool:
-            try:
-                s.close()
-            except:
-                pass
+        if hasattr(self, '__sock_pool'):
+            for s in self.__sock_pool:
+                try:
+                    s.close()
+                except:
+                    pass
 
         self.__ssock.close()
 
