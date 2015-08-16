@@ -28,6 +28,7 @@ class TestConfig(unittest.TestCase):
 
         current_track = self.mpd.get_current_track()
         self.assertEqual(current_track.get('artist'), 'Miles Davis')
+        self.assertEqual(True, False)
 
     def tearDown(self):
         self.mpd_mock.stop()
