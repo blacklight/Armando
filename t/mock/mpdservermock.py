@@ -1,4 +1,4 @@
-import os, socket, sys, threading
+import os, socket, sys, threading, time
 from __init__ import Armando
 
 sys.path = [Armando.get_lib_dir()] + sys.path
@@ -132,4 +132,5 @@ class MpdServerMock(threading.Thread):
                     pass
 
         self.__ssock.close()
+        time.sleep(1)
 
