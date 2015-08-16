@@ -5,4 +5,3 @@ test:
 	cd t/ && $(PYTHON) testmpd.py
 	[ -d share ] && git submodule init && git submodule update && cd share && for prj in *; do if [ -d "$$prj" ]; then cd "$$prj"; [ -f Makefile ] && make test; cd ..;  fi; done
 
-
