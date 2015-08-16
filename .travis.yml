@@ -16,3 +16,11 @@ script: make test
 git:
     # Don't download all the submodules
     submodules: false
+
+notifications:
+    email:
+        recipients:
+            - blacklight86@gmail.com
+        on_success: never
+        on_failure: always
+
