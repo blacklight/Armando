@@ -95,7 +95,8 @@ class MpdServerMock(threading.Thread):
         if self.__state != 'stop':
             for key, value in self.__track.items():
                 response += '%s: %s\n' % (key, value)
-        return self.__format_msg(response)
+        return None
+        # return self.__format_msg(response)
 
     def get_status(self):
         response = ""
