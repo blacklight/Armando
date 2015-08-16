@@ -19,6 +19,6 @@ notifications:
     email:
         recipients:
             - blacklight86@gmail.com
-        on_success: never
+        on_success: change
         on_failure: always
 
