@@ -132,5 +132,4 @@ class MpdServerMock(threading.Thread):
                     pass
 
         self.__ssock.close()
-        time.sleep(1)
 
