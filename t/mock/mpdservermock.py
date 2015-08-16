@@ -95,8 +95,8 @@ class MpdServerMock(threading.Thread):
         if self.__state != 'stop':
             for key, value in self.__track.items():
                 response += '%s: %s\n' % (key, value)
-        return None
-        # return self.__format_msg(response)
+        # return ""
+        return self.__format_msg(response)
 
     def get_status(self):
         response = ""
@@ -115,7 +115,7 @@ class MpdServerMock(threading.Thread):
         while True:
             try:
                 (sock, addr) = self.__ssock.accept()
-            except socket.timeout as e:
+            except (socket.timeout, OSError) as e:
                 self.stop()
                 break
 
