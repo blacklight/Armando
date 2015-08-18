@@ -17,9 +17,8 @@ class Logger(object):
     __default_log_format = '[%(asctime)-15s] %(message)s'
 
     def __get_logfile_name(self):
-        return Armando.get_logs_dir() \
-            + os.sep \
-            + (self.__config.get('logging.filename') or 'main.log')
+        return self.__config.get('logger.logfile') or \
+            Armando.get_logs_dir() + os.sep  + 'default.log'
 
     def __get_loglevel(self):
         loglevel = self.__config.get('logger.loglevel').lower()
