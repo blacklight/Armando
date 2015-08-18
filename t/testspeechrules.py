@@ -9,12 +9,14 @@ from __armando__ import Armando
 Armando.initialize()
 ###
 
-from rules import Rules
+from config import Config
 
 class TestTakkRules(unittest.TestCase):
     __dummy_file = 'test_action_dummy_file'
 
     def setUp(self):
+        Config.get_config('conf/main.test.conf')
+        from rules import Rules
         self.rules = Rules('conf/speech.test.xml')
 
     def test_pattern_matched(self):
