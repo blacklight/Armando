@@ -32,7 +32,6 @@ class TestTakkRules(unittest.TestCase):
 
     def test_get_rules_by_pattern(self):
         rules = self.rules.get_rules_by_patterns(['create-file'])
-        print(rules)
         self.assertEqual(len(rules), 1)
         self.assertEqual(rules[0], 'create-test-file-shell-on-create-file')
 
