@@ -11,6 +11,66 @@ Armando.initialize()
 from config import Config
 from logger import Logger
 
+class Pattern(object):
+    """
+    Model for patterns defined in rules.xml
+    @author: Fabio "BlackLight" Manganiello <blacklight86@gmail.com>
+    """
+
+    def __init__(self, id, match):
+        self.__id = id
+        self.__build_match(match)
+
+    def __build_match(self, match_content):
+        " Extract keywords and replace them with (.+?) in the regex "
+
+        tmp_content = match_content
+        regex = '(.*){([A-Za-z0-9-_\s]+)\[regex-index=(\d+)\]}(.*)'
+        attributes = []
+        m = re.search(regex, tmp_content)
+
+        while m:
+            match_content = match_content.replace(tmp_content, m.group(1) + '(.*)' + m.group(4))
+            tmp_content = m.group(1)
+            attributes.insert(0, {
+                'name': m.group(2).strip(),
+                'regex_index': int(m.group(3)),
+            })
+
+            m = re.search(regex, tmp_content)
+
+        self.__match = match_content.strip()
+        self.__attributes = attributes
+
+    def get_id(self):
+        return self.__id
+
+    def get_match(self):
+        return self.__match
+
+    def get_attributes(self):
+        return self.__attributes
+
+class Action(object):
+    """
+    Model for actions defined in rules.xml
+    @author: Fabio "BlackLight" Manganiello <blacklight86@gmail.com>
+    """
+
+    def __init__(self, id, type, code):
+        self.__id = id
+        self.__type = type
+        self.__code = code
+
+    def get_id(self):
+        return self.__id
+
+    def get_type(self):
+        return self.__type
+
+    def get_code(self):
+        return self.__code
+
 class Rules(object):
     __config = Config.get_config()
     __logger = Logger.get_logger(__name__)
@@ -62,44 +122,17 @@ class Rules(object):
             if not 'id' in xml_pattern.attributes:
                 raise AttributeError('Pattern #%d has no ID attribute' % len(__self.patterns)+1)
 
-            pattern = {
-                'id': xml_pattern.attributes['id'].value,
-            }
+            pattern_id = xml_pattern.attributes['id'].value
 
             try:
                 match = xml_pattern.getElementsByTagName('match')[0]
             except IndexError as e:
-                raise AttributeError('The pattern [%s] has no match attributes' % pattern.id)
+                raise AttributeError('The pattern [%s] has no match attributes' % pattern_id)
 
             match_content = match.firstChild.wholeText
-            pattern['match'] = self.__build_match(match_content)
-
+            pattern = Pattern(id=pattern_id, match=match_content)
             self.__patterns.append(pattern)
-        self.__patterns_map = dict(map(lambda _: (_['id'], _), self.__patterns))
-
-    @classmethod
-    def __build_match(cls, match_content):
-        " Extract keywords and replace them with (.+?) in the regex "
-
-        tmp_content = match_content
-        regex = '(.*){([A-Za-z0-9-_\s]+)\[regex-index=(\d+)\]}(.*)'
-        attributes = []
-        m = re.search(regex, tmp_content)
-
-        while m:
-            match_content = match_content.replace(tmp_content, m.group(1) + '(.*)' + m.group(4))
-            tmp_content = m.group(1)
-            attributes.insert(0, {
-                'name': m.group(2).strip(),
-                'regex_index': int(m.group(3)),
-            })
-
-            m = re.search(regex, tmp_content)
-
-        return {
-            'value': match_content.strip(),
-            'attributes': attributes,
-        }
+        self.__patterns_map = dict(map(lambda _: (_.get_id(), _), self.__patterns))
 
     def __parse_actions(self):
         try:
@@ -132,14 +165,13 @@ class Rules(object):
             if not 'type' in xml_action.attributes:
                 raise AttributeError('Action #%d has no type attribute - either "python" or "shell" is required' % len(__self.actions)+1)
 
-            action = {
-                'id': xml_action.attributes['id'].value,
-                'type': xml_action.attributes['type'].value,
-                'code': xml_action.firstChild.wholeText,
-            }
+            action = Action(\
+                id=xml_action.attributes['id'].value, \
+                type=xml_action.attributes['type'].value, \
+                code=xml_action.firstChild.wholeText)
 
             self.__actions.append(action)
-        self.__actions_map = dict(map(lambda _: (_['id'], _), self.__actions))
+        self.__actions_map = dict(map(lambda _: (_.get_id(), _), self.__actions))
 
     def __parse_rules(self):
         try:
@@ -270,13 +302,13 @@ class Rules(object):
         matches = []
 
         for pattern in self.get_patterns():
-            match_value = pattern['match']['value']
-            match_attributes = pattern['match']['attributes']
+            match_value = pattern.get_match()
+            match_attributes = pattern.get_attributes()
             m = re.search(match_value, string, re.IGNORECASE)
 
             if m:
                 match = {
-                    'id': pattern['id'],
+                    'id': pattern.get_id(),
                     'attributes': {},
                 }
 
@@ -300,15 +332,18 @@ class Rules(object):
         """
 
         action = self.__actions_map[action_id]
-        code = action['code']
+        code = action.get_code()
 
         for key, value in arguments.items():
-            code = action['code'].replace('$$%s$$' % key, value)
+            code = action.get_code().replace('$$%s$$' % key, value)
 
-        if action['type'] == 'shell':
+        if action.get_type() == 'shell':
             os.system(code)
-        else:
+        elif action.get_type() == 'python':
             eval(code.strip())
+        else:
+            raise AttributeError('Invalid code type "%s" for action ID %s - either shell or python are accepted' %
+                (action.get_type(), action_id))
 
     def get_rules_by_patterns(self, pattern_ids):
         """
