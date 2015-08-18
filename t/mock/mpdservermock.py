@@ -102,7 +102,7 @@ class MpdServerMock(threading.Thread):
         response = ""
         self.__status['state'] = self.__state
         for key, value in self.__status.items():
-            response += '%s: %s\n'
+            response += '%s: %s\n' % (key, value)
         return self.__format_msg(response)
 
     def run(self):
