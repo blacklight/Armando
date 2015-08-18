@@ -1,4 +1,3 @@
-from __future__ import print_function
 from config import Config
 from logger import Logger
 

@@ -2,4 +2,5 @@
 
 cd t/
 ./testconfig.py
+./testspeechrules.py
 

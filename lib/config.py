@@ -30,14 +30,10 @@ class Config(object):
         parser = ConfigParser()
         with open(rcfile) as fp:
             try:
+                # Python 3
                 parser.read_file(fp)
             except AttributeError as e:
-                # Ok Python, I hate you from the bottom of my heart.
-                # readfp() is the only method implemented by ConfigParser
-                # on Python 2, but it's deprecated by ConfigParser
-                # on Python 3, which uses read_file() instead. Why
-                # on Earth must I write some shit like this in a modern
-                # programming language?
+                # Python 2
                 parser.readfp(fp)
 
         for section in parser.sections():
@@ -70,11 +66,6 @@ class Config(object):
                 rcfile_found = True
                 self.__parse_rc_file(os.getcwd() + os.sep + 'main.conf')
             except EnvironmentError as e:
-                # Ok guys, it can't be true that Python 3 supports
-                # FileNotFoundError and Python 2 does not, and I have to use
-                # EnvironmentError to be compatible with both. You guys have
-                # COMPLETELY smashed the back compatibility and killed a great
-                # programming language. I hate you from the bottom of my heart.
                 if rcfile_found is False:
                     raise e
         else:
