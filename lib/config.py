@@ -1,7 +1,4 @@
-try:
-    from configparser import ConfigParser
-except ImportError as e:
-    from ConfigParser import SafeConfigParser as ConfigParser
+from configparser import ConfigParser
 
 from __init__ import Armando
 from constants import Constants
@@ -29,12 +26,7 @@ class Config(object):
     def __parse_rc_file(self, rcfile):
         parser = ConfigParser()
         with open(rcfile) as fp:
-            try:
-                # Python 3
-                parser.read_file(fp)
-            except AttributeError as e:
-                # Python 2
-                parser.readfp(fp)
+            parser.read_file(fp)
 
         for section in parser.sections():
             # Ignore sections having enabled = False
@@ -65,7 +57,7 @@ class Config(object):
                 self.__parse_rc_file(Armando.get_base_dir() + os.sep + 'main.conf')
                 rcfile_found = True
                 self.__parse_rc_file(os.getcwd() + os.sep + 'main.conf')
-            except EnvironmentError as e:
+            except FileNotFoundError as e:
                 if rcfile_found is False:
                     raise e
         else:
