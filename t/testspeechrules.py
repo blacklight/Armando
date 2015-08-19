@@ -37,10 +37,19 @@ class TestTakkRules(unittest.TestCase):
         self.assertEqual(len(rules), 1)
         self.assertEqual(rules[0], 'create-test-file-shell-on-create-file')
 
+        action_ids = self.rules.get_actions_by_rule(rules[0])
+        self.assertEqual(len(action_ids), 1)
+        self.assertEqual(action_ids[0], 'create-test-file-shell')
+
     def test_get_rules_by_multiple_patterns(self):
         rules = self.rules.get_rules_by_patterns(['create-file', 'remove-file'])
         self.assertEqual(len(rules), 1)
         self.assertEqual(rules[0], 'create-and-remove-test-file-shell-on-double-command')
+
+        action_ids = self.rules.get_actions_by_rule(rules[0])
+        self.assertEqual(len(action_ids), 2)
+        self.assertEqual(action_ids[0], 'create-test-file-shell')
+        self.assertEqual(action_ids[1], 'remove-test-file-shell')
 
     def test_get_rules_by_non_existing_pattern(self):
         rules = self.rules.get_rules_by_patterns(['i-dont-exist'])

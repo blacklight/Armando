@@ -62,6 +62,20 @@ class Action(object):
         self.__type = type
         self.__code = code
 
+    def run(self, arguments={}):
+        code = self.get_code()
+
+        for key, value in arguments.items():
+            code = self.get_code().replace('$$%s$$' % key, value)
+
+        if self.get_type() == 'shell':
+            os.system(code)
+        elif self.get_type() == 'python':
+            eval(code.strip())
+        else:
+            raise AttributeError('Invalid code type "%s" for action ID %s - either shell or python are accepted' %
+                (self.get_type(), self.get_id()))
+
     def get_id(self):
         return self.__id
 
@@ -213,7 +227,7 @@ class Rules(object):
             rule = {
                 'id': xml_rule.attributes['id'].value,
                 'on': self.__parse_on_node(xml_rule.getElementsByTagName('on')[0], []),
-                'then': self.__parse_then_node(xml_rule.getElementsByTagName('then')[0], []),
+                'then': self.__parse_then_node(xml_rule.getElementsByTagName('then')[0]),
             }
 
             self.__rules.append(rule)
@@ -249,12 +263,25 @@ class Rules(object):
                 return cls.__parse_on_node(child, out_node, in_and = False, in_or = True)
 
             child = child.nextSibling
-
         return out_node
 
     @classmethod
-    def __parse_then_node(cls, node, out_node):
-        pass
+    def __parse_then_node(cls, node):
+        action_ids = []
+        child = node.firstChild
+
+        while child != None:
+            if not hasattr(child, 'tagName'):
+                child = child.nextSibling
+                continue
+
+            if child.tagName == 'action':
+                if not 'id' in child.attributes:
+                    raise AttributeError('A rule action has no ID attribute')
+
+            action_ids.append(child.attributes['id'].value)
+            child = child.nextSibling
+        return action_ids
 
     def get_patterns(self):
         return self.__patterns
@@ -318,32 +345,7 @@ class Rules(object):
                         match['attributes'][attribute['name']] = attribute_match.strip()
 
                 matches.append(match)
-
         return matches
-
-    def run_action(self, action_id, arguments={}):
-        """
-        Run an action by id.
-        action_id -- The action_id
-        arguments -- A dictionary containing the arguments to be passed to the action.
-            The arguments are defined inside of the action code delimited by $$..$$.
-            e.g. if you want to pass {'filename': 'your_file'} to your action, you need
-            then to use it through $$filename$$ in your action code.
-        """
-
-        action = self.__actions_map[action_id]
-        code = action.get_code()
-
-        for key, value in arguments.items():
-            code = action.get_code().replace('$$%s$$' % key, value)
-
-        if action.get_type() == 'shell':
-            os.system(code)
-        elif action.get_type() == 'python':
-            eval(code.strip())
-        else:
-            raise AttributeError('Invalid code type "%s" for action ID %s - either shell or python are accepted' %
-                (action.get_type(), action_id))
 
     def get_rules_by_patterns(self, pattern_ids):
         """
@@ -376,6 +378,22 @@ class Rules(object):
 
             if rule_satisfied:
                 rules.append(rule['id'])
-
         return rules
+
+    def get_actions_by_rule(self, rule_id):
+        rule = self.__rules_map[rule_id]
+        return rule['then']
+
+    def run_action(self, action_id, arguments={}):
+        """
+        Run an action by ID.
+        action_id -- Action ID
+        arguments -- A dictionary containing the arguments to be passed to the action.
+            The arguments are defined inside of the action code delimited by $$..$$.
+            e.g. if you want to pass {'filename': 'your_file'} to your action, you need
+            then to use it through $$filename$$ in your action code.
+        """
+
+        action = self.__actions_map[action_id]
+        action.run(arguments)
 
