@@ -7,19 +7,13 @@ class Armando(object):
     """
 
     @classmethod
-    def get_base_dir(cls, curpath=None):
+    def get_base_dir(cls):
         " Get the base directory of Armando project by searching for the .project.root file "
-        if not curpath:
-            curpath = os.path.realpath(os.path.abspath(os.path.split(inspect.getfile(inspect.currentframe()))[0]))
-
-        if os.path.isfile(curpath + os.sep + '.project.root'):
-            return curpath
-
-        if os.path.realpath(curpath) == os.sep:
-            raise RuntimeError('The root directory of Armando platform could not be found ' \
-                + '- no .project.root file found in the upper filesystem hierarchy')
-
-        return cls.get_base_dir(os.path.realpath(curpath + os.sep + '..'))
+        return os.path.realpath( \
+            os.path.dirname( \
+                os.path.realpath(__file__) \
+            ) + os.sep + '..'
+        )
 
     @classmethod
     def get_logs_dir(cls):
