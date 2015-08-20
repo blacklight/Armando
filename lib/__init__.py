@@ -44,10 +44,9 @@ class Armando(object):
     def add_base_lib_dir_to_path(cls):
         """
         Add Armando platform base libdir to sys.path
-        From http://stackoverflow.com/questions/279237/import-a-module-from-a-relative-path
         """
 
-        libdir = cls.get_base_dir() + os.sep + 'lib'
+        libdir = cls.get_lib_dir()
         if libdir not in sys.path:
             sys.path.insert(0, libdir)
 
