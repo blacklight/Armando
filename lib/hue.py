@@ -1,4 +1,5 @@
 import re
+import threading
 
 from config import Config
 from logger import Logger
@@ -10,6 +11,9 @@ class Hue(object):
     @author: Fabio "BlackLight" Manganiello <blacklight86@gmail.com>
     @depend: Philips Hue phue Python bridge [pip install phue]
     """
+
+    __hue = None
+    __hue_lock = threading.RLock()
 
     def __init__(self, lightbulbs=None):
         """
@@ -33,6 +37,20 @@ class Hue(object):
             'bridge': self.bridge_address,
             'lightbulbs': self.lightbulbs or None,
         })
+
+    @classmethod
+    def get_hue(cls):
+        """
+        Static helper used for rules.xml <action> tags of type Python, which are run through eval().
+        Thread-safe singleton to access or initialize the static default hue object
+        """
+        cls.__hue_lock.acquire()
+        try:
+            if cls.__hue is None:
+                cls.__hue = Hue()
+        finally:
+            cls.__hue_lock.release()
+        return cls.__hue
 
     def connect(self):
         " Connect to the Philips Hue bridge "
@@ -59,6 +77,7 @@ class Hue(object):
         })
 
         self.connected = True
+        return self
 
     def is_connected(self):
         " Return true if we are connected to the bridge "
@@ -79,6 +98,7 @@ class Hue(object):
             self.bridge.set_light(light, 'on', on)
             if on:
                 self.bridge.set_light(light, 'bri', 255)
+        return self
 
     def set_bri(self, bri):
         """
@@ -100,6 +120,7 @@ class Hue(object):
                     self.bridge.set_light(light, 'on', True)
 
         self.bridge.set_light(self.lightbulbs, 'bri', bri)
+        return self
 
     def set_sat(self, sat):
         """
@@ -113,6 +134,7 @@ class Hue(object):
         })
 
         self.bridge.set_light(self.lightbulbs, 'sat', sat)
+        return self
 
     def set_hue(self, hue):
         """
@@ -126,6 +148,7 @@ class Hue(object):
         })
 
         self.bridge.set_light(self.lightbulbs, 'hue', hue)
+        return self
 
 # vim:sw=4:ts=4:et:
 

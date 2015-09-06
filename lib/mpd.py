@@ -4,12 +4,16 @@ from music import Track
 
 import re
 import socket
+import threading
 
 class MPD(object):
     """
     Plugin for managing the connection to MPD/Mopidy music server
     @author: Fabio "BlackLight" Manganiello <blacklight86@gmail.com>
     """
+
+    __mpd = None
+    __mpd_lock = threading.RLock()
 
     def __init__(self):
         """
@@ -21,6 +25,20 @@ class MPD(object):
 
         self.host = self.__config.get('mpd.host')
         self.port = int(self.__config.get('mpd.port'))
+
+    @classmethod
+    def get_mpd(cls):
+        """
+        Static helper used for rules.xml <action> tags of type Python, which are run through eval().
+        Thread-safe singleton to access or initialize the static default MPD object
+        """
+        cls.__mpd_lock.acquire()
+        try:
+            if cls.__mpd is None:
+                cls.__mpd = MPD()
+        finally:
+            cls.__mpd_lock.release()
+        return cls.__mpd
 
     def server_cmd(self, cmd):
         """

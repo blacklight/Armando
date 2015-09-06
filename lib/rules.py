@@ -71,7 +71,15 @@ class Action(object):
         if self.get_type() == 'shell':
             os.system(code)
         elif self.get_type() == 'python':
-            eval(code.strip())
+            code = code.strip()
+
+            # TODO Make it modular
+            if 'MPD.' in code:
+                from mpd import MPD
+            if 'Hue.' in code:
+                from hue import Hue
+
+            eval(code)
         else:
             raise AttributeError('Invalid code type "%s" for action ID %s - either shell or python are accepted' %
                 (self.get_type(), self.get_id()))
