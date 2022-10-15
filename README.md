@@ -1,5 +1,9 @@
 # Armando
 
+## ⚠️ DEPRECATION NOTICE ⚠️ ##
+
+**Armando has been wrapped in and largely extended by [Platypush](https://git.platypush.tech/platypush/platypush)**
+
 ## Connect everything to everything.
 
 [![Build Status](https://travis-ci.org/BlackLight/Armando.svg?branch=master)](https://travis-ci.org/BlackLight/Armando)
